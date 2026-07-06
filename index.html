@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Civics Trainer</title>
+<meta name="theme-color" content="#152439" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Civics" />
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxODAnIGhlaWdodD0nMTgwJz48cmVjdCB3aWR0aD0nMTgwJyBoZWlnaHQ9JzE4MCcgcng9JzM4JyBmaWxsPScjMTUyNDM5Jy8+PHBhdGggZD0nTTkwIDM2IEwxMDQgNzQgTDE0NSA3NCBMMTEyIDk5IEwxMjQgMTM4IEw5MCAxMTQgTDU2IDEzOCBMNjggOTkgTDM1IDc0IEw3NiA3NCBaJyBmaWxsPScjQjA4NzNDJy8+PC9zdmc+" />
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxODAnIGhlaWdodD0nMTgwJz48cmVjdCB3aWR0aD0nMTgwJyBoZWlnaHQ9JzE4MCcgcng9JzM4JyBmaWxsPScjMTUyNDM5Jy8+PHBhdGggZD0nTTkwIDM2IEwxMDQgNzQgTDE0NSA3NCBMMTEyIDk5IEwxMjQgMTM4IEw5MCAxMTQgTDU2IDEzOCBMNjggOTkgTDM1IDc0IEw3NiA3NCBaJyBmaWxsPScjQjA4NzNDJy8+PC9zdmc+" />
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkNpdmljcyBUcmFpbmVyIiwgInNob3J0X25hbWUiOiAiQ2l2aWNzIiwgInN0YXJ0X3VybCI6ICIuIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNFRUVBREYiLCAidGhlbWVfY29sb3IiOiAiIzE1MjQzOSIsICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MG5hSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY25JSGRwWkhSb1BTY3hPREFuSUdobGFXZG9kRDBuTVRnd0p6NDhjbVZqZENCM2FXUjBhRDBuTVRnd0p5Qm9aV2xuYUhROUp6RTRNQ2NnY25nOUp6TTRKeUJtYVd4c1BTY2pNVFV5TkRNNUp5OCtQSEJoZEdnZ1pEMG5UVGt3SURNMklFd3hNRFFnTnpRZ1RERTBOU0EzTkNCTU1URXlJRGs1SUV3eE1qUWdNVE00SUV3NU1DQXhNVFFnVERVMklERXpPQ0JNTmpnZ09Ua2dURE0xSURjMElFdzNOaUEzTkNCYUp5Qm1hV3hzUFNjalFqQTROek5ESnk4K1BDOXpkbWMrIiwgInNpemVzIjogImFueSIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwifV19" />
+<style>
+  html, body { margin: 0; background: #EEEADF; -webkit-text-size-adjust: 100%; }
+  * { -webkit-tap-highlight-color: transparent; }
+  button { font-family: inherit; }
+</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect } = React;
+
+
+/*
+  Naturalization Civics Trainer — 2025 test (128-question pool)
+  Oral-interview practice: read, say it out loud, reveal, self-grade.
+  Missed questions resurface. Weak spots are tracked while the app is open.
+
+  Officeholder / location answers are set for Carroll Gardens, Brooklyn (NY-10),
+  current as of July 2026, and flagged "verify" — reconfirm the day before your
+  interview at uscis.gov/citizenship/testupdates (NY midterms: Nov 3, 2026).
+*/
+
+const INK = "#152439";
+const INK2 = "#1E3350";
+const PAPER = "#EEEADF";
+const CARD = "#F7F4EC";
+const GOLD = "#B0873C";
+const GREEN = "#3E6B4F";
+const RED = "#A23B37";
+const MUTE = "#6C6656";
+
+// ---- Categories (mirror the official test structure) ----
+const CATS = {
+  principles: { label: "Principles", color: "#3E6B4F" },
+  system: { label: "System of Government", color: "#2E5A7A" },
+  rights: { label: "Rights & Duties", color: "#B0873C" },
+  colonial: { label: "Colonial & Independence", color: "#8A5A3C" },
+  s1800: { label: "The 1800s", color: "#7A4A5A" },
+  modern: { label: "Recent History", color: "#A23B37" },
+  symbols: { label: "Symbols & Holidays", color: "#4A5A8A" },
+};
+
+function catKey(n) {
+  if (n <= 14) return "principles";
+  if (n <= 62) return "system";
+  if (n <= 72) return "rights";
+  if (n <= 89) return "colonial";
+  if (n <= 99) return "s1800";
+  if (n <= 116) return "modern";
+  return "symbols";
+}
+
+function CatIcon({ k, size = 16, color = "currentColor" }) {
+  const p = { fill: "none", stroke: color, strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round" };
+  const paths = {
+    principles: <><path {...p} d="M2 6 L8 2 L14 6" /><path {...p} d="M3.5 6 V12 M6 6 V12 M10 6 V12 M12.5 6 V12" /><path {...p} d="M2 13 H14" /></>,
+    system: <><path {...p} d="M8 2 V13" /><path {...p} d="M3 5 H13" /><path {...p} d="M3 5 L1.5 9 A2 2 0 0 0 4.5 9 Z" /><path {...p} d="M13 5 L11.5 9 A2 2 0 0 0 14.5 9 Z" /><path {...p} d="M5.5 14 H10.5" /></>,
+    rights: <><path {...p} d="M8 1.5 L13 3.5 V8 C 13 11, 10.5 13.5, 8 14.5 C 5.5 13.5, 3 11, 3 8 V3.5 Z" /><path {...p} d="M5.8 7.8 L7.3 9.3 L10.2 5.8" /></>,
+    colonial: <><path {...p} d="M13 3 C 9 4, 5 8, 3 13" /><path {...p} d="M3 13 L5.5 12.5 L4.5 10.5 Z" /><path {...p} d="M9 5 H12" /></>,
+    s1800: <><circle {...p} cx="5" cy="6" r="2.2" /><circle {...p} cx="11" cy="10" r="2.2" /><path {...p} d="M6.6 7.6 L9.4 8.4" /></>,
+    modern: <><path {...p} d="M4 2 V14" /><path {...p} d="M4 2.5 C 7 1, 10 4, 13 2.5 V8 C 10 9.5, 7 6.5, 4 8" /></>,
+    symbols: <><path {...p} d="M8 2 L9.6 5.3 L13 5.8 L10.5 8.2 L11.2 11.6 L8 10 L4.8 11.6 L5.5 8.2 L3 5.8 L6.4 5.3 Z" /></>,
+  };
+  return <svg width={size} height={size} viewBox="0 0 16 16">{paths[k]}</svg>;
+}
+
+// answer = say ONE unless it asks for more. alt = other accepted answers.
+// verify = officeholder/location answer that changes — reconfirm before interview.
+const Q = [
+  { n: 1, q: "What is the form of government of the United States?", a: "Republic", alt: "Constitution-based federal republic; representative democracy" },
+  { n: 2, q: "What is the supreme law of the land?", a: "The Constitution" },
+  { n: 3, q: "Name one thing the U.S. Constitution does.", a: "Forms the government", alt: "Defines the government; protects basic rights of Americans" },
+  { n: 4, q: "The U.S. Constitution starts with the words \u201CWe the People.\u201D What does \u201CWe the People\u201D mean?", a: "Self-government", alt: "Popular sovereignty; consent of the governed; people should govern themselves" },
+  { n: 5, q: "How are changes made to the U.S. Constitution?", a: "Amendments", alt: "Through the amendment process" },
+  { n: 6, q: "What does the Bill of Rights protect?", a: "The rights of people living in the United States" },
+  { n: 7, q: "How many amendments does the U.S. Constitution have?", a: "27 (twenty-seven)" },
+  { n: 8, q: "Why is the Declaration of Independence important?", a: "It says America is free from British control", alt: "It declared independence from Great Britain" },
+  { n: 9, q: "What founding document said the American colonies were free from Britain?", a: "The Declaration of Independence" },
+  { n: 10, q: "Name two important ideas from the Declaration of Independence and the U.S. Constitution.", a: "Equality and liberty", alt: "Life, liberty, pursuit of happiness; the people's rights" },
+  { n: 11, q: "The words \u201CLife, Liberty, and the pursuit of Happiness\u201D are in what founding document?", a: "The Declaration of Independence" },
+  { n: 12, q: "What is the economic system of the United States?", a: "Free market economy", alt: "Capitalist economy; market economy" },
+  { n: 13, q: "What is the rule of law?", a: "Everyone must follow the law", alt: "Leaders / government must obey the law; no one is above the law" },
+  { n: 14, q: "Many documents influenced the U.S. Constitution. Name one.", a: "Declaration of Independence", alt: "Articles of Confederation; Federalist Papers; Magna Carta" },
+  { n: 15, q: "There are three branches of government. Why?", a: "Checks and balances", alt: "Separation of powers" },
+  { n: 16, q: "Name the three branches of government.", a: "Congress, President, and the courts", alt: "Legislative, executive, judicial" },
+  { n: 17, q: "The President is in charge of which branch of government?", a: "The executive branch" },
+  { n: 18, q: "What part of the federal government writes laws?", a: "Congress", alt: "The legislative branch; Senate and House" },
+  { n: 19, q: "What are the two parts of the U.S. Congress?", a: "The Senate and the House (of Representatives)" },
+  { n: 20, q: "Name one power of the U.S. Congress.", a: "Writes laws", alt: "Declares war; makes the budget; collects taxes" },
+  { n: 21, q: "How many U.S. Senators are there?", a: "100 (one hundred)" },
+  { n: 22, q: "How long is a term for a U.S. Senator?", a: "6 (six) years" },
+  { n: 23, q: "Who is one of your state\u2019s U.S. Senators now?", a: "Chuck Schumer", alt: "Kirsten Gillibrand (either is correct for New York)", verify: true },
+  { n: 24, q: "How many voting members are in the House of Representatives?", a: "435 (four hundred thirty-five)" },
+  { n: 25, q: "How long is a term for a member of the House of Representatives?", a: "2 (two) years" },
+  { n: 26, q: "Why do U.S. Representatives serve shorter terms than Senators?", a: "To more closely follow public opinion" },
+  { n: 27, q: "How many Senators does each state have?", a: "2 (two)" },
+  { n: 28, q: "Why does each state have two Senators?", a: "Equal representation (for each state)" },
+  { n: 29, q: "Name your U.S. Representative.", a: "Dan Goldman (NY-10)", alt: "Covers Carroll Gardens. Brad Lander won the June 2026 primary, but Goldman serves until Jan 2027.", verify: true },
+  { n: 30, q: "What is the name of the Speaker of the House now?", a: "Mike Johnson", verify: true },
+  { n: 31, q: "Who does a U.S. Senator represent?", a: "The people of their state" },
+  { n: 32, q: "Who elects U.S. Senators?", a: "Citizens from their state" },
+  { n: 33, q: "Who does a member of the House of Representatives represent?", a: "The people in their district" },
+  { n: 34, q: "Who elects members of the House of Representatives?", a: "Citizens from their district" },
+  { n: 35, q: "Some states have more Representatives than others. Why?", a: "Because they have more people" },
+  { n: 36, q: "The President is elected for how many years?", a: "4 (four) years" },
+  { n: 37, q: "The President can serve only two terms. Why?", a: "Because of the 22nd Amendment" },
+  { n: 38, q: "What is the name of the President of the United States now?", a: "Donald Trump", verify: true },
+  { n: 39, q: "What is the name of the Vice President of the United States now?", a: "JD Vance", verify: true },
+  { n: 40, q: "If the President can no longer serve, who becomes President?", a: "The Vice President" },
+  { n: 41, q: "Name one power of the President.", a: "Signs bills into law", alt: "Vetoes bills; Commander in Chief; appoints judges; makes treaties" },
+  { n: 42, q: "Who is the Commander in Chief of the U.S. military?", a: "The President" },
+  { n: 43, q: "Who signs bills to become laws?", a: "The President" },
+  { n: 44, q: "Who vetoes bills?", a: "The President" },
+  { n: 45, q: "Who appoints federal judges?", a: "The President" },
+  { n: 46, q: "The executive branch has many parts. Name one.", a: "The President", alt: "The Cabinet; federal departments and agencies" },
+  { n: 47, q: "What does the President\u2019s Cabinet do?", a: "Advises the President" },
+  { n: 48, q: "What are two Cabinet-level positions?", a: "Secretary of State and Secretary of Defense", alt: "Any two: State, Defense, Treasury, Justice (Attorney General), etc." },
+  { n: 49, q: "Why is the Electoral College important?", a: "It decides who is elected President" },
+  { n: 50, q: "What is one part of the judicial branch?", a: "The Supreme Court" },
+  { n: 51, q: "What does the judicial branch do?", a: "Explains laws", alt: "Reviews laws; resolves disputes; decides if a law goes against the Constitution" },
+  { n: 52, q: "What is the highest court in the United States?", a: "The Supreme Court" },
+  { n: 53, q: "How many seats are on the Supreme Court?", a: "9 (nine)" },
+  { n: 54, q: "How many Supreme Court justices are usually needed to decide a case?", a: "5 (five)" },
+  { n: 55, q: "How long do Supreme Court justices serve?", a: "For life", alt: "Until they retire, die, or are removed" },
+  { n: 56, q: "Supreme Court justices serve for life. Why?", a: "To be independent (of politics)" },
+  { n: 57, q: "Who is the Chief Justice of the United States now?", a: "John Roberts", verify: true },
+  { n: 58, q: "Name one power that is only for the federal government.", a: "Print paper money", alt: "Declare war; create an army; make treaties" },
+  { n: 59, q: "Name one power that is only for the states.", a: "Give a driver\u2019s license", alt: "Provide schooling; provide police/fire protection; approve zoning" },
+  { n: 60, q: "What is the purpose of the 10th Amendment?", a: "Powers not given to the federal government belong to the states or the people" },
+  { n: 61, q: "Who is the Governor of your state now?", a: "Kathy Hochul", verify: true },
+  { n: 62, q: "What is the capital of your state?", a: "Albany", verify: true },
+  { n: 63, q: "There are four amendments about who can vote. Describe one.", a: "Any citizen can vote", alt: "Citizens 18 and older can vote; you don\u2019t pay to vote; men and women can vote" },
+  { n: 64, q: "Who can vote in federal elections, run for federal office, and serve on a jury?", a: "Citizens", alt: "U.S. citizens" },
+  { n: 65, q: "What are three rights of everyone living in the United States?", a: "Freedom of speech, religion, and assembly", alt: "Also: press; petition the government" },
+  { n: 66, q: "What do we show loyalty to when we say the Pledge of Allegiance?", a: "The United States", alt: "The flag" },
+  { n: 67, q: "Name two promises new citizens make in the Oath of Allegiance.", a: "Obey the laws and be loyal to the United States", alt: "Give up loyalty to other countries; defend the Constitution; serve the nation if needed" },
+  { n: 68, q: "How can people become United States citizens?", a: "Naturalize", alt: "Be born in the U.S.; have a U.S. citizen parent" },
+  { n: 69, q: "What are two examples of civic participation in the United States?", a: "Vote and run for office", alt: "Join a party; help a campaign; contact officials; join a civic group" },
+  { n: 70, q: "What is one way Americans can serve their country?", a: "Vote", alt: "Pay taxes; obey the law; serve in the military; run for office" },
+  { n: 71, q: "Why is it important to pay federal taxes?", a: "Required by law", alt: "Civic duty; funds the federal government" },
+  { n: 72, q: "Men age 18 through 25 must register for the Selective Service. Name one reason.", a: "Required by law", alt: "Civic duty; makes the draft fair if needed" },
+  { n: 73, q: "The colonists came to America for many reasons. Name one.", a: "Freedom", alt: "Religious freedom; economic opportunity; escape persecution" },
+  { n: 74, q: "Who lived in America before the Europeans arrived?", a: "Native Americans", alt: "American Indians" },
+  { n: 75, q: "What group of people was taken and sold as slaves?", a: "Africans" },
+  { n: 76, q: "What war did Americans fight to win independence from Britain?", a: "The American Revolution", alt: "The Revolutionary War; the War for Independence" },
+  { n: 77, q: "Name one reason Americans declared independence from Britain.", a: "High taxes", alt: "Taxation without representation; no self-government; soldiers quartered in homes" },
+  { n: 78, q: "Who wrote the Declaration of Independence?", a: "(Thomas) Jefferson" },
+  { n: 79, q: "When was the Declaration of Independence adopted?", a: "July 4, 1776" },
+  { n: 80, q: "The American Revolution had many important events. Name one.", a: "Declaration of Independence", alt: "Battle of Bunker Hill; Battle of Saratoga; Battle of Yorktown; Valley Forge" },
+  { n: 81, q: "There were 13 original states. Name five.", a: "New York, Massachusetts, New Hampshire, New Jersey, Delaware", alt: "Also: CT, RI, PA, MD, VA, NC, SC, GA" },
+  { n: 82, q: "What founding document was written in 1787?", a: "The Constitution" },
+  { n: 83, q: "The Federalist Papers supported the Constitution. Name one writer.", a: "(James) Madison", alt: "(Alexander) Hamilton; (John) Jay; Publius" },
+  { n: 84, q: "Why were the Federalist Papers important?", a: "They helped people understand the Constitution" },
+  { n: 85, q: "Benjamin Franklin is famous for many things. Name one.", a: "U.S. diplomat", alt: "Oldest member of the Constitutional Convention; first Postmaster General; started free libraries" },
+  { n: 86, q: "George Washington is famous for many things. Name one.", a: "First President of the United States", alt: "\u201CFather of Our Country\u201D; general of the Continental Army" },
+  { n: 87, q: "Thomas Jefferson is famous for many things. Name one.", a: "Writer of the Declaration of Independence", alt: "Third President of the United States" },
+  { n: 88, q: "James Madison is famous for many things. Name one.", a: "One of the writers of the Federalist Papers", alt: "\u201CFather of the Constitution\u201D; fourth President" },
+  { n: 89, q: "Alexander Hamilton is famous for many things. Name one.", a: "One of the writers of the Federalist Papers", alt: "First Secretary of the Treasury" },
+  { n: 90, q: "What territory did the United States buy from France in 1803?", a: "Louisiana (Territory)" },
+  { n: 91, q: "Name one war fought by the United States in the 1800s.", a: "Civil War", alt: "War of 1812; Mexican-American War; Spanish-American War" },
+  { n: 92, q: "Name the U.S. war between the North and the South.", a: "The Civil War", alt: "The War Between the States" },
+  { n: 93, q: "The Civil War had many important events. Name one.", a: "Emancipation Proclamation", alt: "Battle of Gettysburg; Gettysburg Address; Lincoln\u2019s assassination" },
+  { n: 94, q: "Abraham Lincoln is famous for many things. Name one.", a: "Freed the slaves", alt: "Saved the Union; led the U.S. during the Civil War" },
+  { n: 95, q: "What did the Emancipation Proclamation do?", a: "Freed the slaves", alt: "Freed slaves in the Confederate states" },
+  { n: 96, q: "What U.S. war ended slavery?", a: "The Civil War" },
+  { n: 97, q: "What amendment says persons born or naturalized in the U.S. are citizens?", a: "The 14th Amendment" },
+  { n: 98, q: "When did all men get the right to vote?", a: "After the Civil War", alt: "15th Amendment" },
+  { n: 99, q: "Name one leader of the women\u2019s rights movement in the 1800s.", a: "Susan B. Anthony", alt: "Elizabeth Cady Stanton; Sojourner Truth; Lucretia Mott" },
+  { n: 100, q: "Name one war fought by the United States in the 1900s.", a: "World War I", alt: "World War II; Korean War; Vietnam War; Gulf War" },
+  { n: 101, q: "Why did the U.S. enter World War I?", a: "To support the Allied Powers", alt: "Because Germany attacked U.S. ships" },
+  { n: 102, q: "When did all women get the right to vote?", a: "After World War I", alt: "1920; the 19th Amendment" },
+  { n: 103, q: "What was the Great Depression?", a: "The longest economic recession in modern history" },
+  { n: 104, q: "When did the Great Depression start?", a: "The stock market crash of 1929" },
+  { n: 105, q: "Who was President during the Great Depression and World War II?", a: "(Franklin) Roosevelt" },
+  { n: 106, q: "Why did the United States enter World War II?", a: "To support the Allied Powers", alt: "After the attack on Pearl Harbor" },
+  { n: 107, q: "Dwight Eisenhower is famous for many things. Name one.", a: "General during World War II", alt: "34th President; built the interstate highway system" },
+  { n: 108, q: "Who was the United States\u2019 main rival during the Cold War?", a: "Russia", alt: "The Soviet Union / USSR" },
+  { n: 109, q: "During the Cold War, what was one main concern of the United States?", a: "Communism" },
+  { n: 110, q: "Why did the United States enter the Korean War?", a: "To stop the spread of communism" },
+  { n: 111, q: "Why did the United States enter the Vietnam War?", a: "To stop the spread of communism" },
+  { n: 112, q: "What did the civil rights movement do?", a: "Fought to end racial discrimination" },
+  { n: 113, q: "Martin Luther King, Jr. is famous for many things. Name one.", a: "Fought for civil rights", alt: "Worked for equality for all Americans" },
+  { n: 114, q: "Why did the United States enter the Persian Gulf War?", a: "To force the Iraqi military out of Kuwait" },
+  { n: 115, q: "What major event happened on September 11, 2001?", a: "Terrorists attacked the United States" },
+  { n: 116, q: "Name one U.S. military conflict after the September 11, 2001 attacks.", a: "War in Afghanistan", alt: "War in Iraq" },
+  { n: 117, q: "Name one American Indian tribe in the United States.", a: "Cherokee", alt: "Navajo, Sioux, Apache, Iroquois, Hopi, Mohawk, and many others" },
+  { n: 118, q: "Name one example of an American innovation.", a: "The airplane", alt: "Light bulb; automobile; assembly line; internet; moon landing" },
+  { n: 119, q: "What is the capital of the United States?", a: "Washington, D.C." },
+  { n: 120, q: "Where is the Statue of Liberty?", a: "New York Harbor", alt: "Liberty Island; also accepted: on the Hudson River / near New Jersey" },
+  { n: 121, q: "Why does the flag have 13 stripes?", a: "Because there were 13 original colonies" },
+  { n: 122, q: "Why does the flag have 50 stars?", a: "Because there are 50 states (one star each)" },
+  { n: 123, q: "What is the name of the national anthem?", a: "The Star-Spangled Banner" },
+  { n: 124, q: "The Nation\u2019s first motto was \u201CE Pluribus Unum.\u201D What does that mean?", a: "Out of many, one" },
+  { n: 125, q: "What is Independence Day?", a: "The country\u2019s birthday (July 4)", alt: "Celebrates independence from Great Britain" },
+  { n: 126, q: "Name three national U.S. holidays.", a: "Thanksgiving, Christmas, New Year\u2019s Day", alt: "Also: MLK Day, Presidents\u2019 Day, Memorial Day, Juneteenth, Independence Day, Labor Day, Veterans Day" },
+  { n: 127, q: "What is Memorial Day?", a: "A holiday to honor soldiers who died in military service" },
+  { n: 128, q: "What is Veterans Day?", a: "A holiday to honor people in the U.S. military" },
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function CivicsTrainer() {
+  const [mode, setMode] = useState("home"); // home | study | mock | weak
+  const [stats, setStats] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("civics-stats-v1")) || {}; }
+    catch (e) { return {}; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("civics-stats-v1", JSON.stringify(stats)); } catch (e) {}
+  }, [stats]);
+
+  function record(n, gotIt) {
+    setStats((s) => {
+      const cur = s[n] || { miss: 0, seen: 0 };
+      return { ...s, [n]: { miss: cur.miss + (gotIt ? 0 : 1), seen: cur.seen + 1 } };
+    });
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: PAPER, color: INK, fontFamily: "ui-sans-serif, system-ui, -apple-system, Helvetica, Arial, sans-serif" }}>
+      <Header mode={mode} setMode={setMode} />
+      <main className="mx-auto px-5 pb-24" style={{ maxWidth: 640 }}>
+        {mode === "home" && <Home setMode={setMode} />}
+        {mode === "study" && <Study record={record} />}
+        {mode === "mock" && <Mock record={record} />}
+        {mode === "weak" && <WeakSpots stats={stats} setMode={setMode} onReset={() => { if (confirm("Clear all saved progress on this device?")) setStats({}); }} />}
+      </main>
+    </div>
+  );
+}
+
+function Header({ mode, setMode }) {
+  return (
+    <header style={{ background: INK, color: PAPER, position: "relative", overflow: "hidden" }}>
+      <Guilloche />
+      <div className="mx-auto px-5 py-5" style={{ maxWidth: 640, position: "relative" }}>
+        <div className="flex items-center justify-between">
+          <button onClick={() => setMode("home")} className="text-left" style={{ background: "none", border: "none", color: PAPER, cursor: "pointer", padding: 0 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: GOLD, fontWeight: 600 }}>2025 Civics Test \u00B7 128 Questions</div>
+            <div style={{ fontFamily: "ui-serif, Georgia, 'Times New Roman', serif", fontSize: 22, fontWeight: 600, marginTop: 2 }}>Naturalization Trainer</div>
+          </button>
+        </div>
+        {mode !== "home" && (
+          <div style={{ display: "flex", gap: 4, background: INK2, borderRadius: 999, padding: 3, marginTop: 14, width: "fit-content" }}>
+            <Tab label="Study" active={mode === "study"} onClick={() => setMode("study")} />
+            <Tab label="Mock" active={mode === "mock"} onClick={() => setMode("mock")} />
+            <Tab label="Weak spots" active={mode === "weak"} onClick={() => setMode("weak")} />
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function Tab({ label, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{ border: "none", cursor: "pointer", borderRadius: 999, padding: "6px 14px", fontSize: 13, fontWeight: 600, background: active ? GOLD : "transparent", color: active ? INK : PAPER }}>
+      {label}
+    </button>
+  );
+}
+
+function Guilloche() {
+  return (
+    <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, opacity: 0.14 }} preserveAspectRatio="none">
+      {Array.from({ length: 16 }).map((_, i) => (
+        <path key={i} d={`M0 ${8 + i * 7} C 160 ${-14 + i * 7}, 320 ${34 + i * 7}, 640 ${6 + i * 7}`} fill="none" stroke={GOLD} strokeWidth="0.6" />
+      ))}
+    </svg>
+  );
+}
+
+function Home({ setMode }) {
+  return (
+    <div style={{ paddingTop: 28 }}>
+      <p style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 20, lineHeight: 1.4, color: INK }}>
+        It\u2019s an <em>oral</em> test. The officer asks up to 20 questions from a pool of 128 \u2014 you pass at 12 correct. So train the way it\u2019s tested: read, say the answer out loud, then reveal.
+      </p>
+
+      <div style={{ marginTop: 24, display: "grid", gap: 12 }}>
+        <ModeCard title="Study all 128" desc="One question at a time. Grade yourself honestly \u2014 anything you miss comes back until it sticks. Tap Back to review earlier answers." cta="Start studying" onClick={() => setMode("study")} />
+        <ModeCard title="Mock interview" desc="20 random questions under the real rule: the officer stops at 12 right or 9 wrong. Pass/fail plus what you missed." cta="Take the mock" onClick={() => setMode("mock")} />
+        <ModeCard title="Weak spots" desc="The questions you miss most, ranked \u2014 so your last review sessions hit only what needs work." cta="See weak spots" onClick={() => setMode("weak")} />
+      </div>
+
+      <div style={{ marginTop: 22, padding: 14, borderRadius: 10, background: CARD, border: "1px solid rgba(0,0,0,0.06)" }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: GOLD, fontWeight: 700 }}>Filled in for you</div>
+        <p style={{ fontSize: 14, lineHeight: 1.5, color: MUTE, marginTop: 6 }}>
+          The 8 answers that depend on who\u2019s in office are set for <strong style={{ color: INK }}>Carroll Gardens (NY-10)</strong> and current as of July 2026. They\u2019re marked <VerifyPill /> in the deck. Reconfirm them the day before your interview \u2014 NY midterms are Nov 3, 2026.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ModeCard({ title, desc, cta, onClick }) {
+  return (
+    <button onClick={onClick} style={{ textAlign: "left", cursor: "pointer", background: CARD, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 18, width: "100%" }}>
+      <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 19, fontWeight: 600, color: INK }}>{title}</div>
+      <div style={{ fontSize: 14, lineHeight: 1.5, color: MUTE, marginTop: 6 }}>{desc}</div>
+      <div style={{ marginTop: 12, display: "inline-block", fontSize: 13, fontWeight: 700, color: INK, borderBottom: `2px solid ${GOLD}`, paddingBottom: 2 }}>{cta} \u2192</div>
+    </button>
+  );
+}
+
+function VerifyPill() {
+  return <span style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: RED, border: `1px solid ${RED}`, borderRadius: 4, padding: "1px 5px" }}>verify</span>;
+}
+
+function CatChip({ n }) {
+  const k = catKey(n);
+  const c = CATS[k];
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: c.color, fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+      <CatIcon k={k} size={15} color={c.color} />
+      {c.label}
+    </span>
+  );
+}
+
+function QuestionCard({ item, revealed, onReveal }) {
+  return (
+    <div style={{ background: CARD, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 22, minHeight: 220, display: "flex", flexDirection: "column" }}>
+      <div className="flex items-center justify-between">
+        <CatChip n={item.n} />
+        {item.verify && <VerifyPill />}
+      </div>
+      <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 11, color: MUTE, letterSpacing: "0.04em", marginTop: 10 }}>
+        Q{String(item.n).padStart(3, "0")} / 128
+      </div>
+      <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 22, lineHeight: 1.35, fontWeight: 600, color: INK, marginTop: 6 }}>
+        {item.q}
+      </div>
+      <div style={{ marginTop: "auto", paddingTop: 18 }}>
+        {!revealed ? (
+          <button onClick={onReveal} style={{ width: "100%", cursor: "pointer", background: INK, color: PAPER, border: "none", borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 600 }}>
+            Reveal answer
+          </button>
+        ) : (
+          <div style={{ borderTop: "1px solid rgba(0,0,0,0.1)", paddingTop: 14 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: GREEN, fontWeight: 700 }}>Answer</div>
+            <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 20, fontWeight: 600, color: INK, marginTop: 4 }}>{item.a}</div>
+            {item.alt && <div style={{ fontSize: 13, color: MUTE, marginTop: 8, lineHeight: 1.5 }}>{item.verify ? "" : "Also accepted: "}{item.alt}</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Read-only review of already-answered cards, newest first navigation.
+function ReviewOverlay({ log, onClose }) {
+  const [i, setI] = useState(log.length - 1);
+  const entry = log[i];
+  if (!entry) return null;
+  const item = entry.item;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(21,36,57,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 50 }}>
+      <div style={{ background: PAPER, borderRadius: 16, padding: 18, width: "100%", maxWidth: 560 }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: MUTE }}>Reviewing \u00B7 {i + 1} of {log.length}</span>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: INK, fontSize: 13, fontWeight: 700, textDecoration: "underline" }}>Resume</button>
+        </div>
+        <div style={{ background: CARD, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 18 }}>
+          <div className="flex items-center justify-between">
+            <CatChip n={item.n} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: entry.gotIt ? GREEN : RED }}>{entry.gotIt ? "You: Got it" : "You: Missed"}</span>
+          </div>
+          <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 20, fontWeight: 600, marginTop: 10, lineHeight: 1.35 }}>{item.q}</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: GREEN, fontWeight: 700, marginTop: 14 }}>Answer</div>
+          <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 19, fontWeight: 600, marginTop: 3 }}>{item.a}</div>
+          {item.alt && <div style={{ fontSize: 13, color: MUTE, marginTop: 6, lineHeight: 1.5 }}>{item.verify ? "" : "Also accepted: "}{item.alt}</div>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+          <button disabled={i === 0} onClick={() => setI((x) => Math.max(0, x - 1))} style={navBtn(i === 0)}>\u2039 Older</button>
+          <button disabled={i === log.length - 1} onClick={() => setI((x) => Math.min(log.length - 1, x + 1))} style={navBtn(i === log.length - 1)}>Newer \u203A</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function navBtn(disabled) {
+  return { cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.4 : 1, border: `1.5px solid ${INK}`, background: "transparent", color: INK, borderRadius: 10, padding: "11px 0", fontSize: 14, fontWeight: 700 };
+}
+
+function Study({ record }) {
+  const [queue, setQueue] = useState(() => Q.map((x) => x.n));
+  const [revealed, setRevealed] = useState(false);
+  const [known, setKnown] = useState(() => new Set());
+  const [log, setLog] = useState([]); // {item, gotIt}
+  const [reviewing, setReviewing] = useState(false);
+  const [onlyVerify, setOnlyVerify] = useState(false);
+
+  const verifyQueue = useMemo(() => Q.filter((x) => x.verify).map((x) => x.n), []);
+  const active = onlyVerify ? verifyQueue : queue;
+  const currentN = active[0];
+  const item = Q.find((x) => x.n === currentN);
+
+  function grade(gotIt) {
+    record(currentN, gotIt);
+    setLog((l) => [...l, { item, gotIt }]);
+    if (onlyVerify) { setRevealed(false); setQueueRotateVerify(); return; }
+    setKnown((k) => { const nk = new Set(k); gotIt ? nk.add(currentN) : nk.delete(currentN); return nk; });
+    setQueue((qq) => {
+      const rest = qq.slice(1);
+      if (!gotIt) rest.splice(Math.min(rest.length, 3), 0, currentN); // resurface soon
+      return rest.length ? rest : Q.map((x) => x.n);
+    });
+    setRevealed(false);
+  }
+
+  // rotate verify list so drilling the 8 cycles
+  const [vRot, setVRot] = useState(0);
+  function setQueueRotateVerify() { setVRot((r) => (r + 1) % verifyQueue.length); }
+  const verifyItem = Q.find((x) => x.n === verifyQueue[vRot]);
+  const shownItem = onlyVerify ? verifyItem : item;
+
+  if (!shownItem) return null;
+
+  return (
+    <div style={{ paddingTop: 20 }}>
+      <ProgressBar value={known.size} total={Q.length} label={onlyVerify ? "Drilling the 8 verify answers" : `${known.size} of ${Q.length} marked known`} />
+
+      <div className="flex items-center justify-between" style={{ marginTop: 14, marginBottom: 10 }}>
+        <button disabled={log.length === 0} onClick={() => setReviewing(true)} style={{ background: "none", border: "none", cursor: log.length ? "pointer" : "default", opacity: log.length ? 1 : 0.4, color: INK, fontSize: 13, fontWeight: 700 }}>
+          \u2039 Back / review
+        </button>
+        <span style={{ fontSize: 12, color: MUTE }}>{log.length} answered</span>
+      </div>
+
+      <QuestionCard item={shownItem} revealed={revealed} onReveal={() => setRevealed(true)} />
+
+      {revealed && !onlyVerify && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+          <button onClick={() => grade(false)} style={gradeBtn(RED, false)}>Missed it</button>
+          <button onClick={() => grade(true)} style={gradeBtn(GREEN, true)}>Got it</button>
+        </div>
+      )}
+      {revealed && onlyVerify && (
+        <button onClick={() => { setLog((l) => [...l, { item: verifyItem, gotIt: true }]); setRevealed(false); setQueueRotateVerify(); }} style={{ ...gradeBtn(INK, true), marginTop: 12, width: "100%" }}>Next \u2192</button>
+      )}
+
+      <div style={{ marginTop: 18, display: "flex", justifyContent: "center" }}>
+        <button onClick={() => { setOnlyVerify((v) => !v); setRevealed(false); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: MUTE, textDecoration: "underline" }}>
+          {onlyVerify ? "\u2190 Back to all 128" : "Drill just the 8 verify answers"}
+        </button>
+      </div>
+
+      {reviewing && <ReviewOverlay log={log} onClose={() => setReviewing(false)} />}
+    </div>
+  );
+}
+
+function gradeBtn(color, filled) {
+  return { cursor: "pointer", border: `1.5px solid ${color}`, background: filled ? color : "transparent", color: filled ? PAPER : color, borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 700 };
+}
+
+function ProgressBar({ value, total, label }) {
+  const pct = Math.round((value / total) * 100);
+  return (
+    <div>
+      <div className="flex items-center justify-between" style={{ fontSize: 12, color: MUTE, marginBottom: 6 }}>
+        <span>{label}</span>
+        <span style={{ fontFamily: "ui-monospace, monospace" }}>{pct}%</span>
+      </div>
+      <div style={{ height: 6, background: "rgba(0,0,0,0.08)", borderRadius: 999 }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: GOLD, borderRadius: 999, transition: "width 0.3s" }} />
+      </div>
+    </div>
+  );
+}
+
+function Mock({ record }) {
+  const [session, setSession] = useState(() => shuffle(Q).slice(0, 20));
+  const [idx, setIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [correct, setCorrect] = useState(0);
+  const [wrong, setWrong] = useState(0);
+  const [log, setLog] = useState([]); // {item, gotIt}
+  const [reviewing, setReviewing] = useState(false);
+  const [done, setDone] = useState(false);
+
+  function reset() { setSession(shuffle(Q).slice(0, 20)); setIdx(0); setRevealed(false); setCorrect(0); setWrong(0); setLog([]); setDone(false); }
+
+  function grade(gotIt) {
+    record(session[idx].n, gotIt);
+    const nc = correct + (gotIt ? 1 : 0);
+    const nw = wrong + (gotIt ? 0 : 1);
+    setCorrect(nc); setWrong(nw);
+    setLog((l) => [...l, { item: session[idx], gotIt }]);
+    if (nc >= 12 || nw >= 9 || idx + 1 >= session.length) setDone(true);
+    else { setIdx((i) => i + 1); setRevealed(false); }
+  }
+
+  if (done) {
+    const passed = correct >= 12;
+    const missed = log.filter((e) => !e.gotIt).map((e) => e.item);
+    return (
+      <div style={{ paddingTop: 28 }}>
+        <div style={{ background: CARD, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 24, textAlign: "center" }}>
+          <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: passed ? GREEN : RED, fontWeight: 700 }}>{passed ? "Pass" : "Not yet"}</div>
+          <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 40, fontWeight: 700, color: INK, marginTop: 8 }}>{correct}<span style={{ fontSize: 22, color: MUTE }}> correct</span></div>
+          <div style={{ fontSize: 14, color: MUTE, marginTop: 4 }}>{passed ? "You reached 12 \u2014 the officer would stop here." : `${wrong} wrong. It takes 9 wrong to fail; 12 right to pass.`}</div>
+          <button onClick={reset} style={{ marginTop: 20, cursor: "pointer", background: INK, color: PAPER, border: "none", borderRadius: 10, padding: "12px 28px", fontSize: 15, fontWeight: 600 }}>New mock</button>
+        </div>
+        {missed.length > 0 && (
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: MUTE, fontWeight: 700, marginBottom: 10 }}>Review what you missed</div>
+            <div style={{ display: "grid", gap: 10 }}>
+              {missed.map((m) => (
+                <div key={m.n} style={{ background: CARD, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 10, padding: 14 }}>
+                  <CatChip n={m.n} />
+                  <div style={{ fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.4, marginTop: 6 }}>{m.q}</div>
+                  <div style={{ fontSize: 14, color: GREEN, fontWeight: 600, marginTop: 6 }}>{m.a}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ paddingTop: 20 }}>
+      <div className="flex items-center justify-between" style={{ fontSize: 12, color: MUTE, marginBottom: 12 }}>
+        <span style={{ fontFamily: "ui-monospace, monospace" }}>Question {idx + 1} of {session.length}</span>
+        <span><span style={{ color: GREEN, fontWeight: 700 }}>{correct} right</span>{"  \u00B7  "}<span style={{ color: RED, fontWeight: 700 }}>{wrong} wrong</span></span>
+      </div>
+
+      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+        <button disabled={log.length === 0} onClick={() => setReviewing(true)} style={{ background: "none", border: "none", cursor: log.length ? "pointer" : "default", opacity: log.length ? 1 : 0.4, color: INK, fontSize: 13, fontWeight: 700 }}>\u2039 Back / review</button>
+      </div>
+
+      <QuestionCard item={session[idx]} revealed={revealed} onReveal={() => setRevealed(true)} />
+
+      {revealed && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+          <button onClick={() => grade(false)} style={gradeBtn(RED, false)}>Missed it</button>
+          <button onClick={() => grade(true)} style={gradeBtn(GREEN, true)}>Got it</button>
+        </div>
+      )}
+
+      <div style={{ marginTop: 16, textAlign: "center", fontSize: 12, color: MUTE }}>Stops at 12 right (pass) or 9 wrong (fail).</div>
+
+      {reviewing && <ReviewOverlay log={log} onClose={() => setReviewing(false)} />}
+    </div>
+  );
+}
+
+function WeakSpots({ stats, setMode, onReset }) {
+  const rows = useMemo(() => {
+    return Object.entries(stats)
+      .map(([n, s]) => ({ item: Q.find((x) => x.n === Number(n)), ...s }))
+      .filter((r) => r.item && r.miss > 0)
+      .sort((a, b) => b.miss - a.miss || b.miss / b.seen - a.miss / a.seen);
+  }, [stats]);
+
+  const totalSeen = Object.values(stats).reduce((s, x) => s + x.seen, 0);
+  const totalMiss = Object.values(stats).reduce((s, x) => s + x.miss, 0);
+
+  if (rows.length === 0) {
+    return (
+      <div style={{ paddingTop: 40, textAlign: "center" }}>
+        <div style={{ display: "inline-flex", padding: 14, borderRadius: 999, background: CARD, border: "1px solid rgba(0,0,0,0.08)" }}>
+          <CatIcon k="rights" size={26} color={GOLD} />
+        </div>
+        <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 20, fontWeight: 600, marginTop: 14 }}>No weak spots yet</div>
+        <p style={{ fontSize: 14, color: MUTE, marginTop: 6, lineHeight: 1.5 }}>Run a study round or a mock. Anything you mark <em>Missed</em> collects here, ranked, so your final review hits only what needs work.</p>
+        <button onClick={() => setMode("mock")} style={{ marginTop: 18, cursor: "pointer", background: INK, color: PAPER, border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 15, fontWeight: 600 }}>Take a mock</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ paddingTop: 22 }}>
+      <div style={{ fontFamily: "ui-serif, Georgia, serif", fontSize: 22, fontWeight: 600 }}>Weak spots</div>
+      <div style={{ fontSize: 13, color: MUTE, marginTop: 4 }}>{totalMiss} misses across {totalSeen} answers, saved on this device. Ranked by how often you miss each one.</div>
+      <button onClick={onReset} style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", color: RED, fontSize: 12, fontWeight: 700, textDecoration: "underline", padding: 0 }}>Reset saved progress</button>
+
+      <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
+        {rows.map((r) => (
+          <div key={r.item.n} style={{ background: CARD, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 16, borderLeft: `4px solid ${CATS[catKey(r.item.n)].color}` }}>
+            <div className="flex items-center justify-between">
+              <CatChip n={r.item.n} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: RED }}>missed {r.miss} / {r.seen}</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.4, marginTop: 8 }}>{r.item.q}</div>
+            <div style={{ fontSize: 15, color: GREEN, fontWeight: 600, marginTop: 6 }}>{r.item.a}</div>
+            {r.item.alt && <div style={{ fontSize: 13, color: MUTE, marginTop: 5, lineHeight: 1.5 }}>{r.item.verify ? "" : "Also accepted: "}{r.item.alt}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<CivicsTrainer />);
+</script>
+</body>
+</html>
